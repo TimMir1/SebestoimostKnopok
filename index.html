@@ -2,46 +2,49 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Конструктор кнопок YouTube</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       max-width: 1200px;
       margin: 20px auto;
-      padding: 20px;
+      padding: 15px;
       background-color: #f4f4f4;
+      box-sizing: border-box;
     }
     h1 {
       color: #333;
       text-align: center;
-      font-size: 1.8em;
+      font-size: 1.6em;
+      margin-bottom: 20px;
     }
     .calculator {
       background: white;
-      padding: 20px;
+      padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
     }
     .input-group {
-      margin: 10px 0;
+      margin: 12px 0;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: flex-start;
     }
     label {
       font-weight: bold;
       color: #555;
       font-size: 1em;
+      margin-bottom: 5px;
     }
     input, select {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      width: 120px;
+      width: 100%;
       font-size: 1em;
+      box-sizing: border-box;
     }
     button {
       padding: 12px;
@@ -50,16 +53,17 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      margin: 5px;
       font-size: 1em;
+      width: 100%;
+      margin: 10px 0;
     }
     button:hover {
       background-color: #2980b9;
     }
     h2 {
       color: #2c3e50;
-      margin-top: 20px;
-      font-size: 1.4em;
+      font-size: 1.3em;
+      margin: 15px 0;
     }
     .result {
       font-weight: bold;
@@ -69,15 +73,12 @@
       color: #e74c3c;
       font-size: 0.9em;
       display: none;
+      margin-top: 5px;
     }
     .calc-container {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 20px;
-    }
-    .calc-container > div {
-      flex: 1;
-      min-width: 300px;
     }
     .simple-calc-display {
       width: 100%;
@@ -92,7 +93,7 @@
     .simple-calc-buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
+      gap: 10px;
     }
     .operator {
       background-color: #f39c12;
@@ -114,40 +115,35 @@
     }
     /* Адаптивность для мобильных */
     @media (max-width: 600px) {
-      .calc-container {
-        flex-direction: column;
-      }
-      .calculator {
-        width: 100%;
-        padding: 15px;
-      }
-      .input-group {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      input, select {
-        width: 100%;
-        margin-top: 5px;
-      }
-      button {
-        width: 100%;
-        padding: 12px;
-      }
-      .simple-calc-buttons {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-      }
-      .simple-calc-display {
-        font-size: 1.1em;
+      body {
+        padding: 10px;
+        margin: 10px;
       }
       h1 {
-        font-size: 1.5em;
+        font-size: 1.4em;
+      }
+      .calculator {
+        padding: 10px;
       }
       h2 {
         font-size: 1.2em;
       }
       label {
-        font-size: 0.9em;
+        font-size: 0.95em;
+      }
+      input, select, button {
+        font-size: 0.95em;
+        padding: 10px;
+      }
+      .simple-calc-display {
+        font-size: 1.1em;
+      }
+      .simple-calc-buttons {
+        gap: 8px;
+      }
+      button {
+        padding: 12px;
+        line-height: 1.2;
       }
     }
   </style>
