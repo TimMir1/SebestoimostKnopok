@@ -393,7 +393,7 @@
         </div>
 
         <div class="form-group">
-          <label for="nameApplyInput">📝 Нанесение названия канала (₽)</label>
+          <label for="nameApplyInput">📝 Гравировка канала (₽)</label>
           <input id="nameApplyInput" type="number" value="300" min="0">
         </div>
 
@@ -408,8 +408,8 @@
         </div>
 
         <div class="form-group">
-          <label for="unexpectedInput">💥 Непредвиденные расходы (₽)</label>
-          <input id="unexpectedInput" type="number" value="0" min="0">
+          <label for="unexpectedInput">💼 Прочие расходы (₽)</label>
+          <input id="unexpectedInput" type="number" value="1" min="0">
         </div>
       </div>
 
@@ -418,7 +418,7 @@
       </button>
     </form>
 
-    <button id="exportBtn" class="btn-export" style="display: none;" onclick="exportToExcel()">
+    <button id="exportBtn" class="btn-export" onclick="exportToExcel()">
       📥 Экспорт в Excel
     </button>
 
@@ -547,7 +547,7 @@
             <span class="breakdown-value">${formatNumber(labor)} ₽</span>
           </li>
           <li class="breakdown-item">
-            <span class="breakdown-label">📝 Нанесение названия канала</span>
+            <span class="breakdown-label">📝 Гравировка канала</span>
             <span class="breakdown-value">${formatNumber(nameApply)} ₽</span>
           </li>
           <li class="breakdown-item">
@@ -559,7 +559,7 @@
             <span class="breakdown-value">${formatNumber(glue)} ₽</span>
           </li>
           <li class="breakdown-item">
-            <span class="breakdown-label">💥 Непредвиденные расходы</span>
+            <span class="breakdown-label">💼 Прочие расходы</span>
             <span class="breakdown-value">${formatNumber(unexpected)} ₽</span>
           </li>
         </ul>
@@ -568,6 +568,71 @@
       const breakdownDiv = document.getElementById('breakdown');
       breakdownDiv.innerHTML = breakdownHtml;
       breakdownDiv.classList.add('show');
+    }
+
+    function exportToExcel() {
+      const type = document.getElementById('btnType').value;
+      const config = CONFIG[type];
+      const qty = config.qty;
+
+      const scratch = parseFloat(document.getElementById('scratchInput').value) || 0;
+      const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
+      const black = parseFloat(document.getElementById('blackInput').value) || 0;
+      const sell = parseFloat(document.getElementById('sellPriceInput').value) || 0;
+      const labor = parseFloat(document.getElementById('laborInput').value) || 0;
+      const nameApply = parseFloat(document.getElementById('nameApplyInput').value) || 0;
+      const travel = parseFloat(document.getElementById('travelInput').value) || 0;
+      const glue = parseFloat(document.getElementById('glueInput').value) || 0;
+      const unexpected = parseFloat(document.getElementById('unexpectedInput').value) || 0;
+
+      const costScratch = scratch / qty;
+      const costMirror = mirror / qty;
+      const costBlack = black / qty;
+
+      const total = costScratch + costMirror + costBlack + labor + nameApply + travel + glue + unexpected;
+      const profit = sell - total;
+
+      const date = new Date().toLocaleDateString('ru-RU');
+      const time = new Date().toLocaleTimeString('ru-RU');
+
+      const data = [
+        ['Калькулятор YouTube Кнопки'],
+        ['Дата расчета:', date + ' ' + time],
+        [],
+        ['Тип кнопки:', type === 'gold' ? 'Золотая' : 'Серебряная'],
+        ['Количество кнопок:', qty],
+        [],
+        ['МАТЕРИАЛЫ'],
+        [config.scratchName, costScratch.toFixed(2) + ' ₽'],
+        [config.mirrorName, costMirror.toFixed(2) + ' ₽'],
+        ['⬛ Черный композит', costBlack.toFixed(2) + ' ₽'],
+        [],
+        ['РАБОТЫ И РАСХОДЫ'],
+        ['🔧 Резка и обработка', labor.toFixed(2) + ' ₽'],
+        ['📝 Гравировка канала', nameApply.toFixed(2) + ' ₽'],
+        ['🎁 Проезд', travel.toFixed(2) + ' ₽'],
+        ['⚠️ Клей', glue.toFixed(2) + ' ₽'],
+        ['💼 Прочие расходы', unexpected.toFixed(2) + ' ₽'],
+        [],
+        ['ИТОГО'],
+        ['Себестоимость кнопки:', total.toFixed(2) + ' ₽'],
+        ['Цена продажи:', sell.toFixed(2) + ' ₽'],
+        ['Прибыль:', profit.toFixed(2) + ' ₽'],
+        ['Рентабельность:', sell > 0 ? ((profit / sell * 100).toFixed(2) + ' %') : '0 %']
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      
+      ws['!cols'] = [
+        { wch: 35 },
+        { wch: 20 }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Расчет');
+
+      const fileName = `Калькулятор_YouTube_${date.replace(/\./g, '-')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
     }
 
     updateLabels();
