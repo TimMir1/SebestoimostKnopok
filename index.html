@@ -15,66 +15,20 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      border-radius: 50%;
-      top: -250px;
-      right: -250px;
-      animation: float 20s infinite ease-in-out;
-    }
-
-    body::after {
-      content: '';
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-      border-radius: 50%;
-      bottom: -200px;
-      left: -200px;
-      animation: float 15s infinite ease-in-out reverse;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(30px, -30px) rotate(120deg); }
-      66% { transform: translate(-20px, 20px) rotate(240deg); }
+      -webkit-overflow-scrolling: touch;
     }
 
     .container {
       max-width: 900px;
       width: 100%;
+      margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border-radius: 30px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       padding: 40px;
       position: relative;
-      z-index: 1;
-      animation: slideIn 0.6s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .header {
@@ -264,14 +218,6 @@
       border-radius: 20px;
       padding: 30px;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s ease;
-    }
-
-    .breakdown.show {
-      opacity: 1;
-      transform: translateY(0);
     }
 
     .breakdown h3 {
@@ -314,6 +260,10 @@
     }
 
     @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+
       .container {
         padding: 25px;
       }
@@ -334,15 +284,6 @@
         font-size: 1.8em;
       }
     }
-
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
   </style>
 </head>
 <body>
@@ -357,8 +298,8 @@
         <div class="form-group">
           <label for="btnType">🎨 Тип кнопки</label>
           <select id="btnType" onchange="updateLabels()">
-            <option value="gold">Золотая кнопка</option>
-            <option value="silver">Серебряная кнопка</option>
+            <option value="gold">Золотая кнопка (27 шт с листа)</option>
+            <option value="silver">Серебряная кнопка (56 шт с листа)</option>
           </select>
         </div>
 
@@ -525,7 +466,6 @@
 
       const results = document.getElementById('results');
       results.style.display = 'grid';
-      results.style.animation = 'slideIn 0.6s ease-out';
 
       const breakdownHtml = `
         <h3>📋 Детальная разбивка затрат</h3>
@@ -567,13 +507,13 @@
 
       const breakdownDiv = document.getElementById('breakdown');
       breakdownDiv.innerHTML = breakdownHtml;
-      breakdownDiv.classList.add('show');
     }
 
     function exportToExcel() {
       const type = document.getElementById('btnType').value;
       const config = CONFIG[type];
-      const qty = config.qty;
+      const qtyPerSheet = config.qty;
+      const numBtns = parseFloat(document.getElementById('numBtns').value) || 1;
 
       const scratch = parseFloat(document.getElementById('scratchInput').value) || 0;
       const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
@@ -585,9 +525,11 @@
       const glue = parseFloat(document.getElementById('glueInput').value) || 0;
       const unexpected = parseFloat(document.getElementById('unexpectedInput').value) || 0;
 
-      const costScratch = scratch / qty;
-      const costMirror = mirror / qty;
-      const costBlack = black / qty;
+      const sheetsNeeded = Math.ceil(numBtns / qtyPerSheet);
+
+      const costScratch = scratch / qtyPerSheet;
+      const costMirror = mirror / qtyPerSheet;
+      const costBlack = black / qtyPerSheet;
 
       const total = costScratch + costMirror + costBlack + labor + nameApply + travel + glue + unexpected;
       const profit = sell - total;
@@ -600,24 +542,30 @@
         ['Дата расчета:', date + ' ' + time],
         [],
         ['Тип кнопки:', type === 'gold' ? 'Золотая' : 'Серебряная'],
-        ['Количество кнопок:', qty],
+        ['Количество кнопок:', numBtns],
+        ['Требуется листов:', sheetsNeeded],
         [],
-        ['МАТЕРИАЛЫ'],
+        ['МАТЕРИАЛЫ (за 1 кнопку)'],
         [config.scratchName, costScratch.toFixed(2) + ' ₽'],
         [config.mirrorName, costMirror.toFixed(2) + ' ₽'],
         ['⬛ Черный композит', costBlack.toFixed(2) + ' ₽'],
         [],
-        ['РАБОТЫ И РАСХОДЫ'],
+        ['РАБОТЫ И РАСХОДЫ (за 1 кнопку)'],
         ['🔧 Резка и обработка', labor.toFixed(2) + ' ₽'],
         ['📝 Гравировка канала', nameApply.toFixed(2) + ' ₽'],
         ['🎁 Проезд', travel.toFixed(2) + ' ₽'],
         ['⚠️ Клей', glue.toFixed(2) + ' ₽'],
         ['💼 Прочие расходы', unexpected.toFixed(2) + ' ₽'],
         [],
-        ['ИТОГО'],
+        ['ЗА 1 КНОПКУ'],
         ['Себестоимость кнопки:', total.toFixed(2) + ' ₽'],
         ['Цена продажи:', sell.toFixed(2) + ' ₽'],
         ['Прибыль:', profit.toFixed(2) + ' ₽'],
+        [],
+        ['ИТОГО НА ' + numBtns + ' ШТ'],
+        ['Общая себестоимость:', (total * numBtns).toFixed(2) + ' ₽'],
+        ['Общая цена продажи:', (sell * numBtns).toFixed(2) + ' ₽'],
+        ['Общая прибыль:', (profit * numBtns).toFixed(2) + ' ₽'],
         ['Рентабельность:', sell > 0 ? ((profit / sell * 100).toFixed(2) + ' %') : '0 %']
       ];
 
