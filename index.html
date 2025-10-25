@@ -360,6 +360,31 @@
           <label for="sellPriceInput">💰 Цена продажи (₽/шт)</label>
           <input id="sellPriceInput" type="number" value="0" min="0">
         </div>
+
+        <div class="form-group">
+          <label for="laborInput">🔧 Резка и обработка (₽)</label>
+          <input id="laborInput" type="number" value="1500" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="nameApplyInput">📝 Нанесение названия канала (₽)</label>
+          <input id="nameApplyInput" type="number" value="300" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="travelInput">🎁 Проезд (₽)</label>
+          <input id="travelInput" type="number" value="200" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="glueInput">⚠️ Клей (₽)</label>
+          <input id="glueInput" type="number" value="45" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="unexpectedInput">💥 Непредвиденные расходы (₽)</label>
+          <input id="unexpectedInput" type="number" value="0" min="0">
+        </div>
       </div>
 
       <button type="submit" class="btn-calculate">
@@ -413,7 +438,8 @@
     const FIXED_COSTS = {
       labor: 1500,
       nameApply: 300,
-      other: 300
+      travel: 200,
+      glue: 45
     };
 
     function updateLabels() {
@@ -439,13 +465,18 @@
       const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
       const black = parseFloat(document.getElementById('blackInput').value) || 0;
       const sell = parseFloat(document.getElementById('sellPriceInput').value) || 0;
+      const labor = parseFloat(document.getElementById('laborInput').value) || 0;
+      const nameApply = parseFloat(document.getElementById('nameApplyInput').value) || 0;
+      const travel = parseFloat(document.getElementById('travelInput').value) || 0;
+      const glue = parseFloat(document.getElementById('glueInput').value) || 0;
+      const unexpected = parseFloat(document.getElementById('unexpectedInput').value) || 0;
 
       const costScratch = scratch / qty;
       const costMirror = mirror / qty;
       const costBlack = black / qty;
 
       const total = costScratch + costMirror + costBlack + 
-                    FIXED_COSTS.labor + FIXED_COSTS.nameApply + FIXED_COSTS.other;
+                    labor + nameApply + travel + glue + unexpected;
 
       const profit = sell - total;
 
@@ -482,15 +513,23 @@
           </li>
           <li class="breakdown-item">
             <span class="breakdown-label">🔧 Резка и обработка</span>
-            <span class="breakdown-value">${formatNumber(FIXED_COSTS.labor)} ₽</span>
+            <span class="breakdown-value">${formatNumber(labor)} ₽</span>
           </li>
           <li class="breakdown-item">
             <span class="breakdown-label">📝 Нанесение названия канала</span>
-            <span class="breakdown-value">${formatNumber(FIXED_COSTS.nameApply)} ₽</span>
+            <span class="breakdown-value">${formatNumber(nameApply)} ₽</span>
           </li>
           <li class="breakdown-item">
-            <span class="breakdown-label">🎁 Прочие расходы</span>
-            <span class="breakdown-value">${formatNumber(FIXED_COSTS.other)} ₽</span>
+            <span class="breakdown-label">🎁 Проезд</span>
+            <span class="breakdown-value">${formatNumber(travel)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">⚠️ Клей</span>
+            <span class="breakdown-value">${formatNumber(glue)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">💥 Непредвиденные расходы</span>
+            <span class="breakdown-value">${formatNumber(unexpected)} ₽</span>
           </li>
         </ul>
       `;
