@@ -1,315 +1,506 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Конструктор кнопок YouTube</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор себестоимости кнопки YouTube</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      max-width: 1200px;
-      margin: 20px auto;
-      padding: 15px;
-      background-color: #f4f4f4;
-      box-sizing: border-box;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      font-size: 1.6em;
-      margin-bottom: 20px;
-    }
-    .calculator {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    .input-group {
-      margin: 12px 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
     }
-    label {
-      font-weight: bold;
-      color: #555;
-      font-size: 1em;
-      margin-bottom: 5px;
+
+    body::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -250px;
+      right: -250px;
+      animation: float 20s infinite ease-in-out;
     }
-    input, select {
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      bottom: -200px;
+      left: -200px;
+      animation: float 15s infinite ease-in-out reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    .container {
+      max-width: 900px;
       width: 100%;
-      font-size: 1em;
-      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      position: relative;
+      z-index: 1;
+      animation: slideIn 0.6s ease-out;
     }
-    button {
-      padding: 12px;
-      background-color: #3498db;
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 1.1em;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+      transition: color 0.3s ease;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      background: white;
+      color: #333;
+    }
+
+    select:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    select:hover, input[type="number"]:hover {
+      border-color: #b3b3b3;
+    }
+
+    .btn-calculate {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 15px;
+      font-size: 1.2em;
+      font-weight: 700;
       cursor: pointer;
-      font-size: 1em;
-      width: 100%;
-      margin: 10px 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    button:hover {
-      background-color: #2980b9;
+
+    .btn-calculate:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
     }
-    h2 {
-      color: #2c3e50;
-      font-size: 1.3em;
-      margin: 15px 0;
+
+    .btn-calculate:active {
+      transform: translateY(-1px);
     }
-    .result {
-      font-weight: bold;
-      color: #e74c3c;
-    }
-    .error {
-      color: #e74c3c;
-      font-size: 0.9em;
-      display: none;
-      margin-top: 5px;
-    }
-    .calc-container {
-      display: flex;
-      flex-direction: column;
+
+    .results {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
     }
-    .simple-calc-display {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.2em;
-      text-align: right;
+
+    .result-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .result-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .result-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .result-card.profit-positive {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+    }
+
+    .result-card.profit-negative {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    }
+
+    .result-label {
+      font-size: 0.9em;
+      color: #555;
+      font-weight: 600;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .simple-calc-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+
+    .result-value {
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #333;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    .operator {
-      background-color: #f39c12;
+
+    .result-currency {
+      font-size: 0.6em;
+      color: #666;
+      margin-left: 5px;
     }
-    .operator:hover {
-      background-color: #e67e22;
+
+    .breakdown {
+      margin-top: 40px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
     }
-    .equals {
-      background-color: #2ecc71;
+
+    .breakdown.show {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .equals:hover {
-      background-color: #27ae60;
+
+    .breakdown h3 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.4em;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
     }
-    .clear {
-      background-color: #e74c3c;
+
+    .breakdown-list {
+      list-style: none;
     }
-    .clear:hover {
-      background-color: #c0392b;
+
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      transition: all 0.3s ease;
     }
-    /* Адаптивность для мобильных */
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-        margin: 10px;
+
+    .breakdown-item:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+    }
+
+    .breakdown-label {
+      color: #555;
+      font-weight: 500;
+    }
+
+    .breakdown-value {
+      color: #667eea;
+      font-weight: 700;
+      font-size: 1.1em;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
       }
+
       h1 {
-        font-size: 1.4em;
+        font-size: 1.8em;
       }
-      .calculator {
-        padding: 10px;
+
+      .form-grid {
+        grid-template-columns: 1fr;
       }
-      h2 {
-        font-size: 1.2em;
+
+      .results {
+        grid-template-columns: 1fr;
       }
-      label {
-        font-size: 0.95em;
+
+      .result-value {
+        font-size: 1.8em;
       }
-      input, select, button {
-        font-size: 0.95em;
-        padding: 10px;
-      }
-      .simple-calc-display {
-        font-size: 1.1em;
-      }
-      .simple-calc-buttons {
-        gap: 8px;
-      }
-      button {
-        padding: 12px;
-        line-height: 1.2;
-      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
   </style>
 </head>
 <body>
-  <h1>💰 Калькуляторы</h1>
-  <div class="calc-container">
-    <!-- Первый калькулятор: Себестоимость -->
-    <div class="calculator">
-      <h2>Калькулятор: Себестоимость</h2>
-      <div class="input-group">
-        <label for="goldScratchCost">Царапка золото (₽):</label>
-        <input type="number" id="goldScratchCost" value="300" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="goldMirrorCost">Зерколо Золото (₽):</label>
-        <input type="number" id="goldMirrorCost" value="300" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="glueCost">Клей (₽):</label>
-        <input type="number" id="glueCost" value="300" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="cuttingCost">Резка (₽):</label>
-        <input type="number" id="cuttingCost" value="1500" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="suppliesCost">Расходники (₽):</label>
-        <input type="number" id="suppliesCost" value="50" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="travelCost">Проезд (₽):</label>
-        <input type="number" id="travelCost" value="100" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="plotterCost">Плоттерка (₽):</label>
-        <input type="number" id="plotterCost" value="300" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="packagingCost">Упаковка (₽):</label>
-        <input type="number" id="packagingCost" value="30" min="0" step="0.01" onchange="calculateCost()">
-      </div>
-      <div class="input-group">
-        <label for="multiplier">Множитель цены:</label>
-        <select id="multiplier" onchange="calculateCost()">
-          <option value="2.0">2.0</option>
-          <option value="2.5" selected>2.5</option>
-          <option value="3.0">3.0</option>
-        </select>
-      </div>
-      <button onclick="resetCostCalculator()">Сбросить</button>
-      <p id="errorMessage" class="error">Все поля должны содержать неотрицательные числа!</p>
-
-      <h2>СЕБЕСТОИМОСТЬ: <span id="totalCost" class="result">2880₽</span></h2>
-      <h2>Рекомендуемая цена продажи: <span id="sellingPrice" class="result">7200₽</span></h2>
-      <h2>Прибыль: <span id="profit" class="result">4320₽</span></h2>
+  <div class="container">
+    <div class="header">
+      <h1>🏆 Калькулятор YouTube Кнопки</h1>
+      <p class="subtitle">Рассчитайте себестоимость и прибыль</p>
     </div>
 
-    <!-- Второй калькулятор: Обычный арифметический -->
-    <div class="calculator">
-      <h2>Калькулятор: Обычный</h2>
-      <input type="text" id="simpleCalcDisplay" class="simple-calc-display" value="0" readonly>
-      <div class="simple-calc-buttons">
-        <button class="clear" onclick="clearDisplay()">C</button>
-        <button onclick="appendToDisplay('(')">(</button>
-        <button onclick="appendToDisplay(')')">)</button>
-        <button class="operator" onclick="appendToDisplay('/')">÷</button>
-        <button onclick="appendToDisplay('7')">7</button>
-        <button onclick="appendToDisplay('8')">8</button>
-        <button onclick="appendToDisplay('9')">9</button>
-        <button class="operator" onclick="appendToDisplay('*')">×</button>
-        <button onclick="appendToDisplay('4')">4</button>
-        <button onclick="appendToDisplay('5')">5</button>
-        <button onclick="appendToDisplay('6')">6</button>
-        <button class="operator" onclick="appendToDisplay('-')">−</button>
-        <button onclick="appendToDisplay('1')">1</button>
-        <button onclick="appendToDisplay('2')">2</button>
-        <button onclick="appendToDisplay('3')">3</button>
-        <button class="operator" onclick="appendToDisplay('+')">+</button>
-        <button onclick="appendToDisplay('0')">0</button>
-        <button onclick="appendToDisplay('.')">.</button>
-        <button onclick="backspace()">←</button>
-        <button class="equals" onclick="calculate()">=</button>
+    <form id="form" onsubmit="event.preventDefault(); calcButton();">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="btnType">🎨 Тип кнопки</label>
+          <select id="btnType" onchange="updateLabels()">
+            <option value="gold">Золотая кнопка</option>
+            <option value="silver">Серебряная кнопка</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="numBtns">🔢 Количество кнопок</label>
+          <input id="numBtns" type="number" value="1" min="1">
+        </div>
+
+        <div class="form-group">
+          <label for="scratchInput" id="scratchLabel">✨ Царапанное золото (₽/лист)</label>
+          <input id="scratchInput" type="number" value="18000" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="mirrorInput" id="mirrorLabel">💎 Зеркальное золото (₽/лист)</label>
+          <input id="mirrorInput" type="number" value="19000" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="blackInput">⬛ Черный композит (₽/лист)</label>
+          <input id="blackInput" type="number" value="14500" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="sellPriceInput">💰 Цена продажи (₽/шт)</label>
+          <input id="sellPriceInput" type="number" value="0" min="0">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-calculate">
+        📊 Рассчитать
+      </button>
+    </form>
+
+    <div class="results" id="results" style="display: none;">
+      <div class="result-card">
+        <div class="result-label">Себестоимость</div>
+        <div class="result-value">
+          <span id="costPerBtn">0</span>
+          <span class="result-currency">₽</span>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-label">Цена продажи</div>
+        <div class="result-value">
+          <span id="sellPriceBtn">0</span>
+          <span class="result-currency">₽</span>
+        </div>
+      </div>
+
+      <div class="result-card" id="profitCard">
+        <div class="result-label">Прибыль</div>
+        <div class="result-value">
+          <span id="profitBtn">0</span>
+          <span class="result-currency">₽</span>
+        </div>
       </div>
     </div>
+
+    <div class="breakdown" id="breakdown"></div>
   </div>
 
   <script>
-    // Логика для калькулятора себестоимости
-    function calculateCost() {
-      const goldScratchCost = parseFloat(document.getElementById('goldScratchCost').value) || 0;
-      const goldMirrorCost = parseFloat(document.getElementById('goldMirrorCost').value) || 0;
-      const glueCost = parseFloat(document.getElementById('glueCost').value) || 0;
-      const cuttingCost = parseFloat(document.getElementById('cuttingCost').value) || 0;
-      const suppliesCost = parseFloat(document.getElementById('suppliesCost').value) || 0;
-      const travelCost = parseFloat(document.getElementById('travelCost').value) || 0;
-      const plotterCost = parseFloat(document.getElementById('plotterCost').value) || 0;
-      const packagingCost = parseFloat(document.getElementById('packagingCost').value) || 0;
-      const multiplier = parseFloat(document.getElementById('multiplier').value) || 2.5;
+    const CONFIG = {
+      gold: {
+        qty: 27,
+        scratchName: '✨ Царапанное золото',
+        mirrorName: '💎 Зеркальное золото'
+      },
+      silver: {
+        qty: 56,
+        scratchName: '✨ Царапанное серебро',
+        mirrorName: '💎 Зеркальное серебро'
+      }
+    };
 
-      const inputs = [goldScratchCost, goldMirrorCost, glueCost, cuttingCost, suppliesCost, travelCost, plotterCost, packagingCost];
-      const hasNegative = inputs.some(cost => cost < 0);
-      const errorMessage = document.getElementById('errorMessage');
+    const FIXED_COSTS = {
+      labor: 1500,
+      nameApply: 300,
+      other: 300
+    };
 
-      if (hasNegative) {
-        errorMessage.style.display = 'block';
-        document.getElementById('totalCost').textContent = 'Ошибка';
-        document.getElementById('sellingPrice').textContent = 'Ошибка';
-        document.getElementById('profit').textContent = 'Ошибка';
-        return;
-      } else {
-        errorMessage.style.display = 'none';
+    function updateLabels() {
+      const type = document.getElementById('btnType').value;
+      const config = CONFIG[type];
+      
+      document.getElementById('scratchLabel').textContent = 
+        config.scratchName + ' (₽/лист)';
+      document.getElementById('mirrorLabel').textContent = 
+        config.mirrorName + ' (₽/лист)';
+    }
+
+    function formatNumber(num) {
+      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    function calcButton() {
+      const type = document.getElementById('btnType').value;
+      const config = CONFIG[type];
+      const qty = config.qty;
+
+      const scratch = parseFloat(document.getElementById('scratchInput').value) || 0;
+      const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
+      const black = parseFloat(document.getElementById('blackInput').value) || 0;
+      const sell = parseFloat(document.getElementById('sellPriceInput').value) || 0;
+
+      const costScratch = scratch / qty;
+      const costMirror = mirror / qty;
+      const costBlack = black / qty;
+
+      const total = costScratch + costMirror + costBlack + 
+                    FIXED_COSTS.labor + FIXED_COSTS.nameApply + FIXED_COSTS.other;
+
+      const profit = sell - total;
+
+      document.getElementById('costPerBtn').textContent = formatNumber(total);
+      document.getElementById('sellPriceBtn').textContent = formatNumber(sell);
+      document.getElementById('profitBtn').textContent = formatNumber(profit);
+
+      const profitCard = document.getElementById('profitCard');
+      profitCard.classList.remove('profit-positive', 'profit-negative');
+      if (profit > 0) {
+        profitCard.classList.add('profit-positive');
+      } else if (profit < 0) {
+        profitCard.classList.add('profit-negative');
       }
 
-      const total = goldScratchCost + goldMirrorCost + glueCost + cuttingCost + suppliesCost + travelCost + plotterCost + packagingCost;
-      const selling = Math.round(total * multiplier);
-      const profit = selling - total;
+      const results = document.getElementById('results');
+      results.style.display = 'grid';
+      results.style.animation = 'slideIn 0.6s ease-out';
 
-      document.getElementById('totalCost').textContent = `${total.toFixed(2)}₽`;
-      document.getElementById('sellingPrice').textContent = `${selling.toFixed(2)}₽`;
-      document.getElementById('profit').textContent = `${profit.toFixed(2)}₽`;
+      const breakdownHtml = `
+        <h3>📋 Детальная разбивка затрат</h3>
+        <ul class="breakdown-list">
+          <li class="breakdown-item">
+            <span class="breakdown-label">${config.scratchName}</span>
+            <span class="breakdown-value">${formatNumber(costScratch)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">${config.mirrorName}</span>
+            <span class="breakdown-value">${formatNumber(costMirror)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">⬛ Черный композит</span>
+            <span class="breakdown-value">${formatNumber(costBlack)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">🔧 Резка и обработка</span>
+            <span class="breakdown-value">${formatNumber(FIXED_COSTS.labor)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">📝 Нанесение названия канала</span>
+            <span class="breakdown-value">${formatNumber(FIXED_COSTS.nameApply)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">🎁 Прочие расходы</span>
+            <span class="breakdown-value">${formatNumber(FIXED_COSTS.other)} ₽</span>
+          </li>
+        </ul>
+      `;
+
+      const breakdownDiv = document.getElementById('breakdown');
+      breakdownDiv.innerHTML = breakdownHtml;
+      breakdownDiv.classList.add('show');
     }
 
-    function resetCostCalculator() {
-      document.getElementById('goldScratchCost').value = 300;
-      document.getElementById('goldMirrorCost').value = 300;
-      document.getElementById('glueCost').value = 300;
-      document.getElementById('cuttingCost').value = 1500;
-      document.getElementById('suppliesCost').value = 50;
-      document.getElementById('travelCost').value = 100;
-      document.getElementById('plotterCost').value = 300;
-      document.getElementById('packagingCost').value = 30;
-      document.getElementById('multiplier').value = 2.5;
-      calculateCost();
-    }
-
-    // Логика для обычного калькулятора
-    let display = document.getElementById('simpleCalcDisplay');
-
-    function appendToDisplay(value) {
-      if (display.value === '0' && value !== '.') {
-        display.value = value;
-      } else {
-        display.value += value;
-      }
-    }
-
-    function clearDisplay() {
-      display.value = '0';
-    }
-
-    function backspace() {
-      display.value = display.value.slice(0, -1) || '0';
-    }
-
-    function calculate() {
-      try {
-        display.value = eval(display.value.replace('×', '*').replace('−', '-')) || '0';
-      } catch (e) {
-        display.value = 'Ошибка';
-        setTimeout(clearDisplay, 1000);
-      }
-    }
-
-    // Вызываем сразу при загрузке для калькулятора себестоимости
-    window.addEventListener('DOMContentLoaded', calculateCost);
+    updateLabels();
   </script>
 </body>
 </html>
