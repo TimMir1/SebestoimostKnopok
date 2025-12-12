@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Калькулятор себестоимости кнопки YouTube</title>
   <style>
+    /* ... (CSS код оставлен без изменений для краткости, он выглядит хорошо) ... */
     * {
       margin: 0;
       padding: 0;
@@ -146,8 +147,8 @@
 
     .results {
       margin-top: 40px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      /* Обновленная сетка для 4 карточек (Себестоимость, Продажа, Прибыль, Рентабельность) */
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
       gap: 20px;
     }
 
@@ -188,6 +189,10 @@
 
     .result-card.profit-negative {
       background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    }
+
+    .result-card.efficiency {
+        background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
     }
 
     .result-label {
@@ -293,11 +298,11 @@
       <p class="subtitle">Рассчитайте себестоимость и прибыль</p>
     </div>
 
-    <form id="form" onsubmit="event.preventDefault(); calcButton();">
+    <form id="form">
       <div class="form-grid">
         <div class="form-group">
           <label for="btnType">🎨 Тип кнопки</label>
-          <select id="btnType" onchange="updateLabels()">
+          <select id="btnType">
             <option value="gold">Золотая кнопка (27 шт с листа)</option>
             <option value="silver">Серебряная кнопка (56 шт с листа)</option>
           </select>
@@ -354,38 +359,51 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-calculate">
+      <button type="submit" class="btn-calculate" id="calculateBtn">
         📊 Рассчитать
       </button>
     </form>
 
-    <button id="exportBtn" class="btn-export" onclick="exportToExcel()">
+    <button id="exportBtn" class="btn-export">
       📥 Экспорт в Excel
     </button>
 
     <div class="results" id="results" style="display: none;">
-      <div class="result-card">
-        <div class="result-label">Себестоимость</div>
+      <div class="result-card efficiency">
+        <div class="result-label">Рентабельность</div>
         <div class="result-value">
-          <span id="costPerBtn">0</span>
-          <span class="result-currency">₽</span>
+          <span id="profitability">0</span>
+          <span class="result-currency">%</span>
         </div>
       </div>
-
-      <div class="result-card">
-        <div class="result-label">Цена продажи</div>
-        <div class="result-value">
-          <span id="sellPriceBtn">0</span>
-          <span class="result-currency">₽</span>
-        </div>
-      </div>
-
+      
       <div class="result-card" id="profitCard">
-        <div class="result-label">Прибыль</div>
+        <div class="result-label">Прибыль (1 шт)</div>
         <div class="result-value">
           <span id="profitBtn">0</span>
           <span class="result-currency">₽</span>
         </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-label">Общая себестоимость</div>
+        <div class="result-value">
+          <span id="totalCost">0</span>
+          <span class="result-currency">₽</span>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-label">Общая прибыль</div>
+        <div class="result-value">
+          <span id="totalProfit">0</span>
+          <span class="result-currency">₽</span>
+        </div>
+      </div>
+
+      <div style="display: none;">
+          <span id="costPerBtn">0</span>
+          <span id="sellPriceBtn">0</span>
       </div>
     </div>
 
@@ -398,88 +416,150 @@
       gold: {
         qty: 27,
         scratchName: '✨ Царапанное золото',
-        mirrorName: '💎 Зеркальное золото'
+        mirrorName: '💎 Зеркальное золото',
+        label: 'Золотая'
       },
       silver: {
         qty: 56,
         scratchName: '✨ Царапанное серебро',
-        mirrorName: '💎 Зеркальное серебро'
+        mirrorName: '💎 Зеркальное серебро',
+        label: 'Серебряная'
       }
     };
 
-    const FIXED_COSTS = {
-      labor: 1500,
-      nameApply: 300,
-      travel: 200,
-      glue: 45
+    // Кеширование DOM-элементов
+    const DOM = {
+        form: document.getElementById('form'),
+        btnType: document.getElementById('btnType'),
+        numBtns: document.getElementById('numBtns'),
+        scratchLabel: document.getElementById('scratchLabel'),
+        mirrorLabel: document.getElementById('mirrorLabel'),
+        scratchInput: document.getElementById('scratchInput'),
+        mirrorInput: document.getElementById('mirrorInput'),
+        blackInput: document.getElementById('blackInput'),
+        sellPriceInput: document.getElementById('sellPriceInput'),
+        laborInput: document.getElementById('laborInput'),
+        nameApplyInput: document.getElementById('nameApplyInput'),
+        travelInput: document.getElementById('travelInput'),
+        glueInput: document.getElementById('glueInput'),
+        unexpectedInput: document.getElementById('unexpectedInput'),
+        resultsDiv: document.getElementById('results'),
+        costPerBtn: document.getElementById('costPerBtn'),
+        sellPriceBtn: document.getElementById('sellPriceBtn'),
+        profitBtn: document.getElementById('profitBtn'),
+        profitCard: document.getElementById('profitCard'),
+        totalCost: document.getElementById('totalCost'),
+        totalProfit: document.getElementById('totalProfit'),
+        profitability: document.getElementById('profitability'),
+        breakdownDiv: document.getElementById('breakdown'),
+        exportBtn: document.getElementById('exportBtn')
     };
+    
+    // --- Вспомогательные функции ---
 
+    /** Форматирует число с двумя десятичными знаками и пробелами для разделения тысяч. */
+    function formatNumber(num) {
+      if (isNaN(num)) return '0.00';
+      // Используем toLocaleString для более надежного форматирования валюты
+      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); 
+    }
+
+    /** Обновляет метки для полей 'царапанное' и 'зеркальное' в зависимости от типа кнопки. */
     function updateLabels() {
-      const type = document.getElementById('btnType').value;
+      const type = DOM.btnType.value;
       const config = CONFIG[type];
       
-      document.getElementById('scratchLabel').textContent = 
-        config.scratchName + ' (₽/лист)';
-      document.getElementById('mirrorLabel').textContent = 
-        config.mirrorName + ' (₽/лист)';
+      DOM.scratchLabel.textContent = config.scratchName + ' (₽/лист)';
+      DOM.mirrorLabel.textContent = config.mirrorName + ' (₽/лист)';
+
+      // При смене типа кнопки автоматически пересчитываем
+      calcButton();
     }
 
-    function formatNumber(num) {
-      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    }
-
+    /** Основная функция расчета. */
     function calcButton() {
-      const type = document.getElementById('btnType').value;
+      const type = DOM.btnType.value;
       const config = CONFIG[type];
-      const qty = config.qty;
+      const qtyPerSheet = parseFloat(config.qty) || 1;
+      const numBtns = parseFloat(DOM.numBtns.value) || 1;
 
-      const scratch = parseFloat(document.getElementById('scratchInput').value) || 0;
-      const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
-      const black = parseFloat(document.getElementById('blackInput').value) || 0;
-      const sell = parseFloat(document.getElementById('sellPriceInput').value) || 0;
-      const labor = parseFloat(document.getElementById('laborInput').value) || 0;
-      const nameApply = parseFloat(document.getElementById('nameApplyInput').value) || 0;
-      const travel = parseFloat(document.getElementById('travelInput').value) || 0;
-      const glue = parseFloat(document.getElementById('glueInput').value) || 0;
-      const unexpected = parseFloat(document.getElementById('unexpectedInput').value) || 0;
+      // Получение числовых значений (Cost inputs)
+      const scratch = parseFloat(DOM.scratchInput.value) || 0;
+      const mirror = parseFloat(DOM.mirrorInput.value) || 0;
+      const black = parseFloat(DOM.blackInput.value) || 0;
+      
+      // Получение числовых значений (Fixed and Selling inputs)
+      const sell = parseFloat(DOM.sellPriceInput.value) || 0;
+      const labor = parseFloat(DOM.laborInput.value) || 0;
+      const nameApply = parseFloat(DOM.nameApplyInput.value) || 0;
+      const travel = parseFloat(DOM.travelInput.value) || 0;
+      const glue = parseFloat(DOM.glueInput.value) || 0;
+      const unexpected = parseFloat(DOM.unexpectedInput.value) || 0;
 
-      const costScratch = scratch / qty;
-      const costMirror = mirror / qty;
-      const costBlack = black / qty;
+      // 1. Расчет стоимости материалов за 1 кнопку
+      const costScratch = scratch / qtyPerSheet;
+      const costMirror = mirror / qtyPerSheet;
+      const costBlack = black / qtyPerSheet;
+      
+      // 2. Себестоимость за 1 кнопку
+      const costPerBtn = costScratch + costMirror + costBlack + 
+                         labor + nameApply + travel + glue + unexpected;
 
-      const total = costScratch + costMirror + costBlack + 
-                    labor + nameApply + travel + glue + unexpected;
+      // 3. Прибыль за 1 кнопку
+      const profitPerBtn = sell - costPerBtn;
+      
+      // 4. Рентабельность
+      const profitability = sell > 0 ? (profitPerBtn / sell * 100) : 0;
+      
+      // 5. ИТОГО за все кнопки
+      const totalCost = costPerBtn * numBtns;
+      const totalSell = sell * numBtns;
+      const totalProfit = profitPerBtn * numBtns;
+      
+      // --- Обновление DOM ---
+      
+      // Результаты за 1 шт
+      DOM.costPerBtn.textContent = formatNumber(costPerBtn); // Скрытый элемент
+      DOM.sellPriceBtn.textContent = formatNumber(sell); // Скрытый элемент
+      DOM.profitBtn.textContent = formatNumber(profitPerBtn);
 
-      const profit = sell - total;
+      // Итоговые результаты
+      DOM.totalCost.textContent = formatNumber(totalCost);
+      DOM.totalProfit.textContent = formatNumber(totalProfit);
+      DOM.profitability.textContent = formatNumber(profitability);
 
-      document.getElementById('costPerBtn').textContent = formatNumber(total);
-      document.getElementById('sellPriceBtn').textContent = formatNumber(sell);
-      document.getElementById('profitBtn').textContent = formatNumber(profit);
-
-      const profitCard = document.getElementById('profitCard');
-      profitCard.classList.remove('profit-positive', 'profit-negative');
-      if (profit > 0) {
-        profitCard.classList.add('profit-positive');
-      } else if (profit < 0) {
-        profitCard.classList.add('profit-negative');
+      // Визуальное оформление прибыли
+      DOM.profitCard.classList.remove('profit-positive', 'profit-negative');
+      if (profitPerBtn > 0) {
+        DOM.profitCard.classList.add('profit-positive');
+      } else if (profitPerBtn < 0) {
+        DOM.profitCard.classList.add('profit-negative');
       }
 
-      const results = document.getElementById('results');
-      results.style.display = 'grid';
+      DOM.resultsDiv.style.display = 'grid';
 
+      // Детальная разбивка
       const breakdownHtml = `
-        <h3>📋 Детальная разбивка затрат</h3>
+        <h3>📋 Детальная разбивка затрат (1 шт)</h3>
         <ul class="breakdown-list">
           <li class="breakdown-item">
-            <span class="breakdown-label">${config.scratchName}</span>
+            <span class="breakdown-label">💰 Цена продажи (1 шт)</span>
+            <span class="breakdown-value">${formatNumber(sell)} ₽</span>
+          </li>
+          <li class="breakdown-item">
+            <span class="breakdown-label">🔥 Себестоимость (1 шт)</span>
+            <span class="breakdown-value">${formatNumber(costPerBtn)} ₽</span>
+          </li>
+          <li class="breakdown-item" style="border-top: 2px solid #ccc; margin-top: 10px;">
+            <span class="breakdown-label">${config.scratchName} / ${qtyPerSheet} шт.</span>
             <span class="breakdown-value">${formatNumber(costScratch)} ₽</span>
           </li>
           <li class="breakdown-item">
-            <span class="breakdown-label">${config.mirrorName}</span>
+            <span class="breakdown-label">${config.mirrorName} / ${qtyPerSheet} шт.</span>
             <span class="breakdown-value">${formatNumber(costMirror)} ₽</span>
           </li>
           <li class="breakdown-item">
-            <span class="breakdown-label">⬛ Черный композит</span>
+            <span class="breakdown-label">⬛ Черный композит / ${qtyPerSheet} шт.</span>
             <span class="breakdown-value">${formatNumber(costBlack)} ₽</span>
           </li>
           <li class="breakdown-item">
@@ -505,34 +585,41 @@
         </ul>
       `;
 
-      const breakdownDiv = document.getElementById('breakdown');
-      breakdownDiv.innerHTML = breakdownHtml;
+      DOM.breakdownDiv.innerHTML = breakdownHtml;
     }
 
+    /** Функция экспорта в Excel (оставлена почти без изменений, использует те же данные). */
     function exportToExcel() {
-      const type = document.getElementById('btnType').value;
+      const type = DOM.btnType.value;
       const config = CONFIG[type];
       const qtyPerSheet = config.qty;
-      const numBtns = parseFloat(document.getElementById('numBtns').value) || 1;
+      const numBtns = parseFloat(DOM.numBtns.value) || 1;
 
-      const scratch = parseFloat(document.getElementById('scratchInput').value) || 0;
-      const mirror = parseFloat(document.getElementById('mirrorInput').value) || 0;
-      const black = parseFloat(document.getElementById('blackInput').value) || 0;
-      const sell = parseFloat(document.getElementById('sellPriceInput').value) || 0;
-      const labor = parseFloat(document.getElementById('laborInput').value) || 0;
-      const nameApply = parseFloat(document.getElementById('nameApplyInput').value) || 0;
-      const travel = parseFloat(document.getElementById('travelInput').value) || 0;
-      const glue = parseFloat(document.getElementById('glueInput').value) || 0;
-      const unexpected = parseFloat(document.getElementById('unexpectedInput').value) || 0;
+      // Получение исходных данных (для точности в экспорте)
+      const scratch = parseFloat(DOM.scratchInput.value) || 0;
+      const mirror = parseFloat(DOM.mirrorInput.value) || 0;
+      const black = parseFloat(DOM.blackInput.value) || 0;
+      const sell = parseFloat(DOM.sellPriceInput.value) || 0;
+      const labor = parseFloat(DOM.laborInput.value) || 0;
+      const nameApply = parseFloat(DOM.nameApplyInput.value) || 0;
+      const travel = parseFloat(DOM.travelInput.value) || 0;
+      const glue = parseFloat(DOM.glueInput.value) || 0;
+      const unexpected = parseFloat(DOM.unexpectedInput.value) || 0;
 
+      // Расчеты
       const sheetsNeeded = Math.ceil(numBtns / qtyPerSheet);
-
       const costScratch = scratch / qtyPerSheet;
       const costMirror = mirror / qtyPerSheet;
       const costBlack = black / qtyPerSheet;
 
-      const total = costScratch + costMirror + costBlack + labor + nameApply + travel + glue + unexpected;
-      const profit = sell - total;
+      const costPerBtn = costScratch + costMirror + costBlack + labor + nameApply + travel + glue + unexpected;
+      const profitPerBtn = sell - costPerBtn;
+      const profitability = sell > 0 ? (profitPerBtn / sell * 100) : 0;
+      
+      const totalCost = costPerBtn * numBtns;
+      const totalSell = sell * numBtns;
+      const totalProfit = profitPerBtn * numBtns;
+
 
       const date = new Date().toLocaleDateString('ru-RU');
       const time = new Date().toLocaleTimeString('ru-RU');
@@ -541,7 +628,7 @@
         ['Калькулятор YouTube Кнопки'],
         ['Дата расчета:', date + ' ' + time],
         [],
-        ['Тип кнопки:', type === 'gold' ? 'Золотая' : 'Серебряная'],
+        ['Тип кнопки:', config.label],
         ['Количество кнопок:', numBtns],
         ['Требуется листов:', sheetsNeeded],
         [],
@@ -558,15 +645,15 @@
         ['💼 Прочие расходы', unexpected.toFixed(2) + ' ₽'],
         [],
         ['ЗА 1 КНОПКУ'],
-        ['Себестоимость кнопки:', total.toFixed(2) + ' ₽'],
+        ['Себестоимость кнопки:', costPerBtn.toFixed(2) + ' ₽'],
         ['Цена продажи:', sell.toFixed(2) + ' ₽'],
-        ['Прибыль:', profit.toFixed(2) + ' ₽'],
+        ['Прибыль:', profitPerBtn.toFixed(2) + ' ₽'],
+        ['Рентабельность:', profitability.toFixed(2) + ' %'],
         [],
         ['ИТОГО НА ' + numBtns + ' ШТ'],
-        ['Общая себестоимость:', (total * numBtns).toFixed(2) + ' ₽'],
-        ['Общая цена продажи:', (sell * numBtns).toFixed(2) + ' ₽'],
-        ['Общая прибыль:', (profit * numBtns).toFixed(2) + ' ₽'],
-        ['Рентабельность:', sell > 0 ? ((profit / sell * 100).toFixed(2) + ' %') : '0 %']
+        ['Общая себестоимость:', totalCost.toFixed(2) + ' ₽'],
+        ['Общая цена продажи:', totalSell.toFixed(2) + ' ₽'],
+        ['Общая прибыль:', totalProfit.toFixed(2) + ' ₽']
       ];
 
       const ws = XLSX.utils.aoa_to_sheet(data);
@@ -582,8 +669,35 @@
       const fileName = `Калькулятор_YouTube_${date.replace(/\./g, '-')}.xlsx`;
       XLSX.writeFile(wb, fileName);
     }
+    
+    // --- Инициализация и обработчики событий ---
 
-    updateLabels();
+    /** Установка обработчиков событий после загрузки DOM. */
+    function initialize() {
+        // 1. Обработчики для автоматического пересчета
+        const inputs = DOM.form.querySelectorAll('input[type="number"], select');
+        inputs.forEach(input => {
+            input.addEventListener('input', calcButton);
+        });
+        
+        // 2. Обработчик смены типа кнопки
+        DOM.btnType.addEventListener('change', updateLabels);
+        
+        // 3. Обработчик кнопки "Рассчитать" (предотвращаем отправку формы)
+        DOM.form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            calcButton();
+        });
+        
+        // 4. Обработчик кнопки "Экспорт"
+        DOM.exportBtn.addEventListener('click', exportToExcel);
+        
+        // Первоначальная загрузка
+        updateLabels();
+    }
+
+    // Запуск инициализации после загрузки скрипта
+    initialize();
   </script>
 </body>
 </html>
