@@ -722,11 +722,11 @@
       DOM.breakdownDiv.innerHTML = breakdownHtml;
     }
 
-    /** Функция экспорта в Excel (ОБНОВЛЕНА: увеличен шрифт и ширина столбцов). */
+    /** Функция экспорта в Excel (ФИКС: увеличен шрифт до 18pt). */
     function exportToExcel() {
       const type = DOM.btnType.value;
       const config = CONFIG[type];
-      const qtyPerSheet = config.qty;
+      const qtyPerSheet = parseFloat(DOM.numBtns.value) || 1;
       const numBtns = parseFloat(DOM.numBtns.value) || 1;
 
       // Получение исходных данных (для точности в экспорте)
@@ -807,24 +807,33 @@
       
       // 1. Установка ширины столбцов (значительно увеличена)
       ws['!cols'] = [
-        { wch: 60 }, // Ширина столбца A
-        { wch: 30 }  // Ширина столбца B
+        { wch: 60 }, 
+        { wch: 30 }
       ];
       
       // 2. Установка размера шрифта 18pt для всех ячеек
+      const FONT_SIZE = 18;
+      const HEADER_FONT_SIZE = 24;
       const range = XLSX.utils.decode_range(ws['!ref']);
-      const defaultStyle = { font: { sz: 18 } };
 
       for (let R = range.s.r; R <= range.e.r; ++R) {
           for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
               const cell = ws[cellAddress];
               
-              if (cell) {
-                  // Если стиля нет, создаем его
-                  if (!cell.s) cell.s = {};
-                  // Устанавливаем размер шрифта 18pt
-                  cell.s.font = defaultStyle.font;
+              if (cell && cell.v !== undefined) {
+                  // Убедимся, что объекты стиля и шрифта существуют
+                  cell.s = cell.s || {};
+                  cell.s.font = cell.s.font || {};
+                  
+                  // Устанавливаем базовый размер шрифта 18pt
+                  cell.s.font.sz = FONT_SIZE; 
+                  
+                  // Для заголовка (первая строка) устанавливаем 24pt и жирный шрифт
+                  if (R === 0) {
+                      cell.s.font.sz = HEADER_FONT_SIZE;
+                      cell.s.font.bold = true;
+                  }
               }
           }
       }
